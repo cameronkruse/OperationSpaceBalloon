@@ -6,8 +6,9 @@
 #include "Sodaq_DS3231.h"
 #include <SD.h>
 #include <SPI.h>
-// This is my comment test
 
+#include <Servo.h>
+Servo myservo; // creates a servo object to control payload drop
 
 
 #define DHTPIN 2
@@ -34,6 +35,7 @@ void setup ()
    digitalWrite(POWERPIN,HIGH);
    pinMode(ledPin, OUTPUT);
    initializeSD();
+   myservo.attach(9);  // attaches the servo on pin 9 to the servo object
    
     //rtc.setDateTime(dt); //Adjust date-time as defined 'dt' above 
 }
@@ -82,6 +84,7 @@ void initSensors()
    Wire.begin();
    rtc.begin();
    dht.begin();
+   // Initialize the pressure sensor storing calibration values on device.
    pressureSensor.begin();
    lightMeter.begin();
 }
@@ -109,24 +112,52 @@ float readPressureFromSensor()
 {
   char status;
   double T,P,p0,a;
-
+  
+  // You must first get a temperature measurement to perform a pressure reading.
+  
+  // Start a temperature measurement:
+  // If request is successful, the number of ms to wait is returned.
+  // If request is unsuccessful, 0 is returned.
+  
   status = pressureSensor.startTemperature();
   if (status != 0)
   {
+    // Wait for the measurement to complete:
+    
     delay(status);
+    // Retrieve the completed temperature measurement:
+    // Note that the measurement is stored in the variable T.
+    // Use '&T' to provide the address of T to the function.
+    // Function returns 1 if successful, 0 if failure.
+    
     status = pressureSensor.getTemperature(T);
     if (status != 0)
     { 
+      // Start a pressure measurement:
+      // The parameter is the oversampling setting, from 0 to 3 (highest res, longest wait).
+      // If request is successful, the number of ms to wait is returned.
+      // If request is unsuccessful, 0 is returned.
+      
       status = pressureSensor.startPressure(3);
       if (status != 0)
       {
+        // Wait for the measurement to complete:
         delay(status);
+
+        // Retrieve the completed pressure measurement:
+        // Note that the measurement is stored in the variable P.
+        // Use '&P' to provide the address of P.
+        // Note also that the function requires the previous temperature measurement (T).
+        // (If temperature is stable, you can do one temperature measurement for a number of pressure measurements.)
+        // Function returns 1 if successful, 0 if failure.
+        
         status = pressureSensor.getPressure(P,T);
         if (status != 0)
         {
           p0 = pressureSensor.sealevel(P,ALTITUDE);       
           return p0;
         }
+        //could add error messages here if we wanted (e.g. 'else Serial.println("error retrieving pressure measurement\n"');
       }
     }
   }
