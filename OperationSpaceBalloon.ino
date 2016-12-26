@@ -35,9 +35,14 @@ void setup ()
    digitalWrite(POWERPIN,HIGH);
    pinMode(ledPin, OUTPUT);
    initializeSD();
-   myservo.attach(9);  // attaches the servo on pin 9 to the servo object
+   myservo.attach(9);  // attaches the servo on pin 9 to the servo object 
+   payloadShut = true; //changes once payload opens. not sure if this is the best place to put this variable.
 
   // Get the baseline pressure and write it to file on SD card:
+  // Because pressure also varies with weather, you must first take a pressure
+  // reading at a known baseline altitude. Then you can measure variations
+  // from that pressure
+  
   int baseline;
   String baselineEntry;
   
@@ -291,3 +296,19 @@ void writeEntryToFile(String entry)
   writeToFile(entry);
   closeFile();
 }
+
+void Payload();
+{ //probably should only run this when boolean is true so it doesn't try to open the doors more than once
+  if (payloadShut == true)
+  { 
+    int currentPressure;
+    currentPressure = readPressure();
+    
+    deltapressure = currentPressure - baseline;
+    if deltapressure >= //need value here. below is where servo motor command will go and payloadShut will turn to false
+  }
+  int currentPressure 
+  currentPressure = readPressure()
+  if 
+}
+
