@@ -36,11 +36,25 @@ void setup ()
    pinMode(ledPin, OUTPUT);
    initializeSD();
    myservo.attach(9);  // attaches the servo on pin 9 to the servo object
+
+  // Get the baseline pressure and write it to file on SD card:
+  int baseline;
+  String baselineEntry;
+  
+  baseline = getPressure();
+  baselineEntry = baseline;
+  
+  writeEntryToFile("baseline pressure:,"+baselineEntry+"mb");
+  delay(2000);
+
    
-    //rtc.setDateTime(dt); //Adjust date-time as defined 'dt' above 
+  //rtc.setDateTime(dt); //Adjust date-time as defined 'dt' above 
 }
 
 void loop () 
+/*Not sure if this is the right way to think about it, but it seems the 
+  below code block is what runs every time we loop through the code. The 
+  code below this block is what defines all the functions run in this main block.*/
 {
     String temperature;
     String humidity;
@@ -277,4 +291,3 @@ void writeEntryToFile(String entry)
   writeToFile(entry);
   closeFile();
 }
-
