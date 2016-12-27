@@ -8,7 +8,6 @@
 #include <SPI.h>
 
 #include <Servo.h>
-Servo myservo; // creates a servo object to control payload drop
 
 
 #define DHTPIN 2
@@ -29,13 +28,16 @@ SFE_BMP180 pressureSensor;
 BH1750 lightMeter;
 int id = 0;
 
+Servo myServo; // creates a servo object to control payload drop
+int pos = 0;
+
 void setup () 
 {
    pinMode(POWERPIN, OUTPUT);
    digitalWrite(POWERPIN,HIGH);
    pinMode(ledPin, OUTPUT);
    initializeSD();
-   myservo.attach(9);  // attaches the servo on pin 9 to the servo object 
+   myServo.attach(9);  // attaches the servo on pin 9 to the servo object 
    payloadShut = true; //changes once payload opens. not sure if this is the best place to put this variable.
 
   // Get the baseline pressure and write it to file on SD card:
@@ -304,9 +306,18 @@ void Payload();
     int currentPressure;
     currentPressure = readPressure();
     
-    deltapressure = currentPressure - baseline;
-    if deltapressure >= //need value here. below is where servo motor command will go and payloadShut will turn to false
+    int deltaPressure = baseline - currentPressure;
+    if (deltaPressure >= 957); //should be the change in pressure equal to gaining 65,000ft of elevation 95685pa = 957mb
+    {
+     for (pos = 0; pos <= 180; pos += 1)// goes from 0 degrees to 180 degrees in steps of 1 degree
+      { 
+        myServo.write(pos);              // tell servo to go to position in variable 'pos'
+        delay(15);                       // waits 15ms for the servo to reach the position
+      }
+     payloadShut == false
+    }
   }
+}
   int currentPressure 
   currentPressure = readPressure()
   if 
