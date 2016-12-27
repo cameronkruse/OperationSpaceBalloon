@@ -3,7 +3,7 @@
 #include <SFE_BMP180.h>
 #include <DHT.h>
 #include <Wire.h>
-#include "Sodaq_DS3231.h"
+#include <Sodaq_DS3231.h>
 #include <SD.h>
 #include <SPI.h>
 
@@ -69,6 +69,7 @@ void loop ()
     String pressure;
     String entryId;
     String dateEntry;
+    payloadTime
     id++;
     
     digitalWrite(POWERPIN,HIGH);
@@ -95,6 +96,9 @@ void loop ()
     String entry = entryId+","+dateEntry+","+temperature+","+humidity+","+pressure+","+light;    
     writeEntryToFile(entry);
     delay(2000);
+    
+    payloadTime = payload();
+    
     sleepForMinutes(INTERVAL);
     
 }
@@ -307,7 +311,7 @@ void Payload();
     currentPressure = readPressure();
     
     int deltaPressure = baseline - currentPressure;
-    if (deltaPressure >= 957); //should be the change in pressure equal to gaining 65,000ft of elevation 95685pa = 957mb
+    if (deltaPressure >= 957) //should be the change in pressure equal to gaining 65,000ft of elevation 95685pa = 957mb
     {
      for (pos = 0; pos <= 180; pos += 1)// goes from 0 degrees to 180 degrees in steps of 1 degree
       { 
@@ -317,9 +321,5 @@ void Payload();
      payloadShut == false
     }
   }
-}
-  int currentPressure 
-  currentPressure = readPressure()
-  if 
 }
 
