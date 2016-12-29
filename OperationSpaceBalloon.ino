@@ -35,13 +35,20 @@ boolean payloadShut = true; //changes once payload opens. not sure if this is th
 Servo myServo; // creates a servo object to control payload drop
 int pos = 0;
 
-void setup () 
-{
+void setup (){
+  // Open serial communications and wait for port to open:
+  Serial.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+  
    pinMode(POWERPIN, OUTPUT);
    digitalWrite(POWERPIN,HIGH);
    pinMode(ledPin, OUTPUT);
+   Serial.print("Initializing SD card. Running initializeSD which can be found on Line 244");
    initializeSD();
-   myServo.attach(9);  // attaches the servo on pin 9 to the servo object 
+   myServo.attach(9);  // attaches the servo on pin 9 to the servo object
+   Serial.println("servo position is:"+pos); 
 
   // Get the baseline pressure and write it to file on SD card:
   // Because pressure also varies with weather, you must first take a pressure
@@ -49,6 +56,7 @@ void setup ()
   // from that pressure
 
   baselineEntry = readPressure();
+  Serial.println("baseline pressure is:"+baselineEntry);
   baseline = readPressureFromSensor();
 
   writeEntryToFile("baseline pressure:,"+baselineEntry+"mb");
@@ -219,12 +227,14 @@ String DateLogEntry()
   }
  
   dateEntry = month+"/"+day+"/"+year+" "+hour+":"+minute;
+  Serial.println("date is:"+dateEntry);
   return dateEntry;
 }
 
 String readLight()
 {
   uint16_t lux = lightMeter.readLightLevel();
+  Serial.println("pressure is:"+lux);
   return String(lux);
 }
 
@@ -232,6 +242,7 @@ String readPressure()
 {
   String pressure;
   pressure = String(readPressureFromSensor());
+  Serial.println("pressure is:"+pressure);
   return pressure;
 }
 
@@ -242,13 +253,15 @@ void initializeSD()
   if (SD.begin(CS_PIN))
   {
     digitalWrite(ledPin,LOW);
+    Serial.println("I think the card should be initialized line 251 of the code");
   } else
   {
+    Serial.println("I think the card failed, or is not seen as present (line 253 of code)");
     digitalWrite(ledPin,LOW);
     delay(1000);
     digitalWrite(ledPin,HIGH);
     delay(1000);
-     digitalWrite(ledPin,LOW);
+    digitalWrite(ledPin,LOW);
     delay(1000);
     digitalWrite(ledPin,HIGH);
     return;
@@ -258,6 +271,7 @@ void initializeSD()
 int openFileToWrite(char filename[])
 {
   file = SD.open(filename, FILE_WRITE);
+  Serial.println("file opened (line 272 of code");
 
   if (file)
   {
@@ -300,6 +314,7 @@ void writeEntryToFile(String entry)
   openFileToWrite("log.txt");
   writeToFile(entry);
   closeFile();
+  Serial.println("entry recorded");
 }
 
 boolean Payload()
@@ -308,9 +323,11 @@ boolean Payload()
   { 
     float currentPressure;
     currentPressure = readPressureFromSensor();
-    
     float deltaPressure;
     deltaPressure = baseline - currentPressure;
+    String ChangeInPressure;
+    ChangeInPressure = deltaPressure;
+    Serial.println("change from baseline pressure is (deltaPressure variable):"+ChangeInPressure);
     if (deltaPressure >= 957.0) //should be the change in pressure equal to gaining 65,000ft of elevation 95685pa = 957mb
     {
      for (pos = 0; pos <= 180; pos += 1)// goes from 0 degrees to 180 degrees in steps of 1 degree
