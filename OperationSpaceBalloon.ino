@@ -14,8 +14,8 @@
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 
 #define ALTITUDE 216.0 // Altitude in Sparta, Greece
-char TEMPERATURE = 'C' ;  //Change it to F to log degrees Fahrenheit
-int INTERVAL = 1; //interval of measurements in minutes
+char TEMPERATURE = 'F' ;  //Change it to F to log degrees Fahrenheit
+int INTERVAL = 6; //interval of measurements in minutes
 DateTime dt(2015, 12, 14, 9, 28, 40, 1);  //Date and time
 
 int CS_PIN = 10;
@@ -25,8 +25,12 @@ int POWERPIN = 3;
 File file;
 DHT dht(DHTPIN,DHTTYPE);
 SFE_BMP180 pressureSensor;
+String baselineEntry;
+float baseline;
+
 BH1750 lightMeter;
 int id = 0;
+boolean payloadShut = true; //changes once payload opens. not sure if this is the best place to put this variable.
 
 Servo myServo; // creates a servo object to control payload drop
 int pos = 0;
@@ -38,19 +42,15 @@ void setup ()
    pinMode(ledPin, OUTPUT);
    initializeSD();
    myServo.attach(9);  // attaches the servo on pin 9 to the servo object 
-   payloadShut = true; //changes once payload opens. not sure if this is the best place to put this variable.
 
   // Get the baseline pressure and write it to file on SD card:
   // Because pressure also varies with weather, you must first take a pressure
   // reading at a known baseline altitude. Then you can measure variations
   // from that pressure
-  
-  int baseline;
-  String baselineEntry;
-  
-  baseline = getPressure();
-  baselineEntry = baseline;
-  
+
+  baselineEntry = readPressure();
+  baseline = readPressureFromSensor();
+
   writeEntryToFile("baseline pressure:,"+baselineEntry+"mb");
   delay(2000);
 
@@ -69,7 +69,7 @@ void loop ()
     String pressure;
     String entryId;
     String dateEntry;
-    payloadTime
+    boolean payloadTime;
     id++;
     
     digitalWrite(POWERPIN,HIGH);
@@ -97,7 +97,7 @@ void loop ()
     writeEntryToFile(entry);
     delay(2000);
     
-    payloadTime = payload();
+    payloadTime = Payload();
     
     sleepForMinutes(INTERVAL);
     
@@ -117,8 +117,7 @@ void initSensors()
 void sleepForMinutes(int interval)
 {
   int i=0;
-  int seconds = interval*60;
-  int iterations = seconds/8;
+  int iterations = interval/8;
     for (byte i = 0; i <= A5; i++)
     {
     pinMode (i, OUTPUT);    // changed as per below
@@ -303,23 +302,25 @@ void writeEntryToFile(String entry)
   closeFile();
 }
 
-void Payload();
+boolean Payload()
 { //probably should only run this when boolean is true so it doesn't try to open the doors more than once
   if (payloadShut == true)
   { 
-    int currentPressure;
-    currentPressure = readPressure();
+    float currentPressure;
+    currentPressure = readPressureFromSensor();
     
-    int deltaPressure = baseline - currentPressure;
-    if (deltaPressure >= 957) //should be the change in pressure equal to gaining 65,000ft of elevation 95685pa = 957mb
+    float deltaPressure;
+    deltaPressure = baseline - currentPressure;
+    if (deltaPressure >= 957.0) //should be the change in pressure equal to gaining 65,000ft of elevation 95685pa = 957mb
     {
      for (pos = 0; pos <= 180; pos += 1)// goes from 0 degrees to 180 degrees in steps of 1 degree
       { 
         myServo.write(pos);              // tell servo to go to position in variable 'pos'
         delay(15);                       // waits 15ms for the servo to reach the position
       }
-     payloadShut == false
+     payloadShut == false;
     }
   }
+  return true;
 }
 
