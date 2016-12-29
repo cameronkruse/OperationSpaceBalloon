@@ -48,15 +48,17 @@ void setup (){
    Serial.print("Initializing SD card. Running initializeSD which can be found on Line 244");
    initializeSD();
    myServo.attach(9);  // attaches the servo on pin 9 to the servo object
-   Serial.println("servo position is:"+pos); 
+   Serial.print("servo position is: ");
+   Serial.println(pos);
 
   // Get the baseline pressure and write it to file on SD card:
   // Because pressure also varies with weather, you must first take a pressure
   // reading at a known baseline altitude. Then you can measure variations
   // from that pressure
-
+  Serial.println("before read pressure");
   baselineEntry = readPressure();
-  Serial.println("baseline pressure is:"+baselineEntry);
+  Serial.println("baseline pressure is: ");
+  Serial.println(baselineEntry);
   baseline = readPressureFromSensor();
 
   writeEntryToFile("baseline pressure:,"+baselineEntry+"mb");
@@ -144,7 +146,7 @@ float readPressureFromSensor()
 {
   char status;
   double T,P,p0,a;
-  
+  Serial.println("in readPressureFromSensor method");
   // You must first get a temperature measurement to perform a pressure reading.
   
   // Start a temperature measurement:
@@ -152,10 +154,11 @@ float readPressureFromSensor()
   // If request is unsuccessful, 0 is returned.
   
   status = pressureSensor.startTemperature();
+  
   if (status != 0)
   {
     // Wait for the measurement to complete:
-    
+    Serial.println("made it past the if status 0 check");
     delay(status);
     // Retrieve the completed temperature measurement:
     // Note that the measurement is stored in the variable T.
@@ -165,6 +168,7 @@ float readPressureFromSensor()
     status = pressureSensor.getTemperature(T);
     if (status != 0)
     { 
+      Serial.println("d");
       // Start a pressure measurement:
       // The parameter is the oversampling setting, from 0 to 3 (highest res, longest wait).
       // If request is successful, the number of ms to wait is returned.
@@ -188,6 +192,7 @@ float readPressureFromSensor()
         {
           p0 = pressureSensor.sealevel(P,ALTITUDE);       
           return p0;
+          
         }
         //could add error messages here if we wanted (e.g. 'else Serial.println("error retrieving pressure measurement\n"');
       }
@@ -240,6 +245,7 @@ String readLight()
 
 String readPressure()
 {
+  Serial.println("in readPressure method");
   String pressure;
   pressure = String(readPressureFromSensor());
   Serial.println("pressure is:"+pressure);
