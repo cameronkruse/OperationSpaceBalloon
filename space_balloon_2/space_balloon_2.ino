@@ -13,6 +13,7 @@ SFE_BMP180 pressure;
 
 double baseline; // baseline pressure
 String alt;
+String time_str;
 int CS_PIN = 10;
 
 File file;
@@ -49,6 +50,14 @@ void setup()
 
 void loop()
 {
+  unsigned long time_num = millis();
+  time_str = String(time_num);
+
+  createFile("time.txt");
+  writeToFile(time_str);
+  closeFile();  
+  delay(5000);
+  
   double a,P;
   
   // Get a new pressure reading:
@@ -59,22 +68,13 @@ void loop()
   // the new reading and the baseline reading:
 
   a = pressure.altitude(P,baseline);
-  
-  Serial.print("relative altitude: ");
-  if (a >= 0.0) Serial.print(" "); // add a space for positive numbers
-  Serial.print(a,1);
-  Serial.print(" meters, ");
-  if (a >= 0.0) Serial.print(" "); // add a space for positive numbers
-  Serial.print(a*3.28084,0);
-  Serial.println(" feet");
   String alt_str = String(a,1);
   alt = String("relative altitude: " + alt_str + " meters, ");
-  Serial.println(alt);
   createFile("alt.txt");
   writeToFile(alt);
   closeFile();
-  
-  delay(500);
+  delay(1000);
+
 }
 
 
